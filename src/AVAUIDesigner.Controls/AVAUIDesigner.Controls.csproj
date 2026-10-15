@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Controls</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AVAUIDesigner.Engine\AVAUIDesigner.Engine.csproj" />
+  </ItemGroup>
+</Project>

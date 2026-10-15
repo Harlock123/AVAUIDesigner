@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AVAUIDesigner.Shell.ViewModels"
+             xmlns:c="using:AVAUIDesigner.Shell.Controls"
+             x:Class="AVAUIDesigner.Shell.Views.DesignSurfaceView"
+             x:DataType="vm:MainWindowViewModel">
+  <DockPanel>
+    <!-- Notification bar (external modification, crash recovery) -->
+    <Border DockPanel.Dock="Top" Background="#33FFC107" Padding="8,4"
+            IsVisible="{Binding Notification, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" DataContext="{Binding Notification}" x:DataType="vm:NotificationViewModel">
+        <TextBlock Text="{Binding Message}" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <Button Grid.Column="1" Content="{Binding PrimaryText}" Command="{Binding PrimaryCommand}" />
+        <Button Grid.Column="2" Content="{Binding SecondaryText}" Command="{Binding SecondaryCommand}" />
+      </Grid>
+    </Border>
+    <!-- Source has errors: the surface stays at the last valid state -->
+    <Border DockPanel.Dock="Top" Background="#33E0453A" Padding="8,4" IsVisible="{Binding XamlSource.HasParseError}">
+      <TextBlock TextWrapping="Wrap"
+                 Text="The XAML source has errors. The design surface shows the last valid state; fix the XAML to continue designing." />
+    </Border>
+    <c:DesignCanvas x:Name="Canvas"
+                    Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                    Document="{Binding CurrentDocument}"
+                    SelectionManager="{Binding SelectionManager}"
+                    ZoomFactor="{Binding ZoomFactor, Mode=TwoWay}"
+                    ShowGrid="{Binding ShowGrid}"
+                    SnapToGrid="{Binding SnapToGrid}"
+                    SmartSnap="{Binding SmartSnap}"
+                    GridSize="{Binding GridSize}"
+                    SnapThreshold="{Binding SnapThreshold}">
+      <c:DesignCanvas.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
+          <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGesture="Ctrl+C" />
+          <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
+          <MenuItem Header="_Delete" Command="{Binding DeleteCommand}" InputGesture="Delete" />
+          <Separator />
+          <MenuItem Header="Bring to Front" Command="{Binding BringToFrontCommand}" InputGesture="Ctrl+OemCloseBrackets" />
+          <MenuItem Header="Send to Back" Command="{Binding SendToBackCommand}" InputGesture="Ctrl+OemOpenBrackets" />
+          <MenuItem Header="Bring Forward" Command="{Binding BringForwardCommand}" />
+          <MenuItem Header="Send Backward" Command="{Binding SendBackwardCommand}" />
+          <Separator />
+          <MenuItem Header="Wrap In">
+            <MenuItem Header="Grid" Command="{Binding WrapInCommand}" CommandParameter="Grid" />
+            <MenuItem Header="StackPanel" Command="{Binding WrapInCommand}" CommandParameter="StackPanel" />
+            <MenuItem Header="Border" Command="{Binding WrapInCommand}" CommandParameter="Border" />
+            <MenuItem Header="ScrollViewer" Command="{Binding WrapInCommand}" CommandParameter="ScrollViewer" />
+          </MenuItem>
+          <MenuItem Header="Unwrap" Command="{Binding UnwrapCommand}" />
+          <Separator />
+          <MenuItem Header="Set Tab Index…" Command="{Binding SetTabIndexCommand}" />
+          <MenuItem Header="Set x:Name…" Command="{Binding RenameCommand}" InputGesture="F2" />
+          <MenuItem Header="Lock / Unlock" Command="{Binding ToggleLockCommand}" />
+          <Separator />
+          <MenuItem Header="View XAML for Selection" Command="{Binding ViewXamlForSelectionCommand}" />
+          <Separator />
+          <MenuItem Header="Properties" Command="{Binding FocusPropertiesCommand}" />
+        </ContextMenu>
+      </c:DesignCanvas.ContextMenu>
+    </c:DesignCanvas>
+  </DockPanel>
+</UserControl>

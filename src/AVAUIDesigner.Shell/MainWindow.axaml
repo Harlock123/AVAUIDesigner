@@ -1,0 +1,210 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AVAUIDesigner.Shell.ViewModels"
+        xmlns:v="using:AVAUIDesigner.Shell.Views"
+        x:Class="AVAUIDesigner.Shell.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="{Binding Title}"
+        Width="1400" Height="900" MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen">
+  <Window.Styles>
+    <Style Selector="Button.tool, ToggleButton.tool">
+      <Setter Property="Padding" Value="7,3" />
+      <Setter Property="MinWidth" Value="28" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Border.panelHeader">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+      <Setter Property="Padding" Value="6,3" />
+    </Style>
+    <Style Selector="GridSplitter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundBaseLowBrush}" />
+    </Style>
+  </Window.Styles>
+
+  <DockPanel>
+    <!-- ============ Menu ============ -->
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="_File">
+        <MenuItem Header="_New">
+          <MenuItem Header="_Window…" Command="{Binding NewWindowCommand}" InputGesture="Ctrl+N" />
+          <MenuItem Header="_UserControl…" Command="{Binding NewUserControlCommand}" />
+          <Separator />
+          <MenuItem Header="MVVM W_indow…" Command="{Binding NewMvvmWindowCommand}" />
+          <MenuItem Header="MVVM U_serControl…" Command="{Binding NewMvvmUserControlCommand}" />
+        </MenuItem>
+        <MenuItem Header="_Open…" Command="{Binding OpenFileCommand}" InputGesture="Ctrl+O" />
+        <MenuItem Header="Open _Project…" Command="{Binding OpenProjectCommand}" />
+        <MenuItem x:Name="RecentMenu" Header="_Recent Files" />
+        <Separator />
+        <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGesture="Ctrl+S" />
+        <MenuItem Header="Save _As…" Command="{Binding SaveAsCommand}" InputGesture="Ctrl+Shift+S" />
+        <MenuItem Header="_Close" Command="{Binding CloseCommand}" />
+        <Separator />
+        <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+      </MenuItem>
+      <MenuItem Header="_Edit">
+        <MenuItem Header="{Binding UndoHeader}" Command="{Binding UndoCommand}" InputGesture="Ctrl+Z" />
+        <MenuItem Header="{Binding RedoHeader}" Command="{Binding RedoCommand}" InputGesture="Ctrl+Y" />
+        <Separator />
+        <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
+        <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGesture="Ctrl+C" />
+        <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
+        <MenuItem Header="_Delete" Command="{Binding DeleteCommand}" InputGesture="Delete" />
+        <MenuItem Header="D_uplicate" Command="{Binding DuplicateCommand}" InputGesture="Ctrl+D" />
+        <Separator />
+        <MenuItem Header="Select _All" Command="{Binding SelectAllCommand}" InputGesture="Ctrl+A" />
+        <MenuItem Header="Set x:_Name…" Command="{Binding RenameCommand}" InputGesture="F2" />
+        <MenuItem Header="Set _Tab Index…" Command="{Binding SetTabIndexCommand}" />
+        <MenuItem Header="_Lock / Unlock" Command="{Binding ToggleLockCommand}" />
+      </MenuItem>
+      <MenuItem Header="_View">
+        <MenuItem Header="_Toolbox" ToggleType="CheckBox" IsChecked="{Binding ShowToolbox}" />
+        <MenuItem Header="_Properties" ToggleType="CheckBox" IsChecked="{Binding ShowProperties}" />
+        <MenuItem Header="Document _Outline" ToggleType="CheckBox" IsChecked="{Binding ShowOutline}" />
+        <MenuItem Header="_XAML Source" ToggleType="CheckBox" IsChecked="{Binding XamlSource.IsSplitViewVisible}" />
+        <Separator />
+        <MenuItem Header="Show _Grid" ToggleType="CheckBox" IsChecked="{Binding ShowGrid}" />
+        <MenuItem Header="_Snap to Grid" ToggleType="CheckBox" IsChecked="{Binding SnapToGrid}" />
+        <Separator />
+        <MenuItem Header="Zoom _In" Command="{Binding ZoomInCommand}" InputGesture="Ctrl+OemPlus" />
+        <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGesture="Ctrl+OemMinus" />
+        <MenuItem Header="Zoom _100%" Command="{Binding Zoom100Command}" InputGesture="Ctrl+D0" />
+        <MenuItem Header="Zoom to _Fit" Command="{Binding ZoomFitCommand}" InputGesture="Ctrl+Shift+D0" />
+        <Separator />
+        <MenuItem Header="View XAML for Selection" Command="{Binding ViewXamlForSelectionCommand}" />
+      </MenuItem>
+      <MenuItem Header="F_ormat">
+        <MenuItem Header="_Align">
+          <MenuItem Header="Lefts" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Left}" />
+          <MenuItem Header="Centers" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Center}" />
+          <MenuItem Header="Rights" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Right}" />
+          <Separator />
+          <MenuItem Header="Tops" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Top}" />
+          <MenuItem Header="Middles" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Middle}" />
+          <MenuItem Header="Bottoms" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Bottom}" />
+        </MenuItem>
+        <MenuItem Header="_Distribute">
+          <MenuItem Header="Horizontally" Command="{Binding DistributeCommand}" CommandParameter="Horizontal" />
+          <MenuItem Header="Vertically" Command="{Binding DistributeCommand}" CommandParameter="Vertical" />
+        </MenuItem>
+        <MenuItem Header="_Order">
+          <MenuItem Header="Bring to Front" Command="{Binding BringToFrontCommand}" InputGesture="Ctrl+OemCloseBrackets" />
+          <MenuItem Header="Send to Back" Command="{Binding SendToBackCommand}" InputGesture="Ctrl+OemOpenBrackets" />
+          <MenuItem Header="Bring Forward" Command="{Binding BringForwardCommand}" />
+          <MenuItem Header="Send Backward" Command="{Binding SendBackwardCommand}" />
+        </MenuItem>
+        <Separator />
+        <MenuItem Header="_Wrap In">
+          <MenuItem Header="Grid" Command="{Binding WrapInCommand}" CommandParameter="Grid" />
+          <MenuItem Header="StackPanel" Command="{Binding WrapInCommand}" CommandParameter="StackPanel" />
+          <MenuItem Header="Border" Command="{Binding WrapInCommand}" CommandParameter="Border" />
+          <MenuItem Header="ScrollViewer" Command="{Binding WrapInCommand}" CommandParameter="ScrollViewer" />
+          <MenuItem Header="Canvas" Command="{Binding WrapInCommand}" CommandParameter="Canvas" />
+        </MenuItem>
+        <MenuItem Header="_Unwrap" Command="{Binding UnwrapCommand}" />
+        <MenuItem Header="_Group in Grid" Command="{Binding GroupInGridCommand}" InputGesture="Ctrl+G" />
+      </MenuItem>
+      <MenuItem Header="_Build">
+        <MenuItem Header="Show _Code-Behind" Click="OnShowCodeBehind" />
+        <MenuItem Header="Show _ViewModel" Click="OnShowViewModel" IsEnabled="{Binding IsMvvm}" />
+        <Separator />
+        <MenuItem Header="Convert to _MVVM" Command="{Binding ConvertToMvvmCommand}" />
+        <MenuItem Header="Apply MVVM _Bindings" Command="{Binding ApplyMvvmBindingsCommand}" />
+      </MenuItem>
+      <MenuItem Header="_Tools">
+        <MenuItem Header="_Preferences…" Command="{Binding PreferencesCommand}" />
+      </MenuItem>
+      <MenuItem Header="_Help">
+        <MenuItem Header="_Keyboard Shortcuts" Click="OnShowShortcuts" />
+        <MenuItem Header="_About AVAUIDesigner" Command="{Binding AboutCommand}" />
+      </MenuItem>
+    </Menu>
+
+    <!-- ============ Toolbar ============ -->
+    <Border DockPanel.Dock="Top" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <StackPanel Orientation="Horizontal" Spacing="2" Margin="4,2">
+        <Button Classes="tool" Content="🗔 New" ToolTip.Tip="New Window (Ctrl+N)" Command="{Binding NewWindowCommand}" />
+        <Button Classes="tool" Content="▢ New Control" ToolTip.Tip="New UserControl" Command="{Binding NewUserControlCommand}" />
+        <Button Classes="tool" Content="📂" ToolTip.Tip="Open (Ctrl+O)" Command="{Binding OpenFileCommand}" />
+        <Button Classes="tool" Content="💾" ToolTip.Tip="Save (Ctrl+S)" Command="{Binding SaveCommand}" />
+        <Separator Width="1" Margin="4,2" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+        <Button Classes="tool" Content="↶" ToolTip.Tip="Undo (Ctrl+Z)" Command="{Binding UndoCommand}" />
+        <Button Classes="tool" Content="↷" ToolTip.Tip="Redo (Ctrl+Y)" Command="{Binding RedoCommand}" />
+        <Separator Width="1" Margin="4,2" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+        <ComboBox ItemsSource="{x:Static vm:MainWindowViewModel.ZoomOptions}" SelectedItem="{Binding SelectedZoomOption}"
+                  PlaceholderText="{Binding ZoomText}" MinWidth="86" ToolTip.Tip="Zoom" VerticalAlignment="Center" />
+        <ToggleButton Classes="tool" Content="⊞ Snap" IsChecked="{Binding SnapToGrid}" ToolTip.Tip="Snap to grid" />
+        <ToggleButton Classes="tool" Content="⋮⋮ Grid" IsChecked="{Binding ShowGrid}" ToolTip.Tip="Show grid" />
+        <Separator Width="1" Margin="4,2" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+        <Button Classes="tool" Content="⫷" ToolTip.Tip="Align lefts" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Left}" />
+        <Button Classes="tool" Content="⫼" ToolTip.Tip="Align centers" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Center}" />
+        <Button Classes="tool" Content="⫸" ToolTip.Tip="Align rights" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Right}" />
+        <Button Classes="tool" Content="⊤" ToolTip.Tip="Align tops" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Top}" />
+        <Button Classes="tool" Content="⊝" ToolTip.Tip="Align middles" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Middle}" />
+        <Button Classes="tool" Content="⊥" ToolTip.Tip="Align bottoms" Command="{Binding AlignCommand}" CommandParameter="{x:Static vm:AlignKind.Bottom}" />
+        <Button Classes="tool" Content="↔" ToolTip.Tip="Distribute horizontally" Command="{Binding DistributeCommand}" CommandParameter="Horizontal" />
+        <Button Classes="tool" Content="↕" ToolTip.Tip="Distribute vertically" Command="{Binding DistributeCommand}" CommandParameter="Vertical" />
+      </StackPanel>
+    </Border>
+
+    <!-- ============ Status bar ============ -->
+    <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" Padding="8,2">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto" ColumnSpacing="18">
+        <TextBlock Text="{Binding ElementCountText}" />
+        <TextBlock Grid.Column="1" Text="{Binding ZoomText}" />
+        <TextBlock Grid.Column="2" Text="{Binding CursorText}" MinWidth="70" />
+        <TextBlock Grid.Column="3" Text="{Binding SelectionText}" />
+        <TextBlock Grid.Column="4" Text="{Binding StatusMessage}" Opacity="0.75" TextTrimming="CharacterEllipsis" />
+        <TextBlock Grid.Column="5" Text="{Binding ErrorsText}" Classes.error="{Binding HasErrors}" />
+      </Grid>
+    </Border>
+
+    <!-- ============ Panels ============ -->
+    <Grid x:Name="RootGrid" ColumnDefinitions="*,4,280">
+      <!-- Left + centre + source -->
+      <Grid x:Name="WorkGrid" RowDefinitions="*,4,0.42*">
+        <Grid x:Name="UpperGrid" ColumnDefinitions="200,4,*">
+          <TabControl x:Name="LeftPanel" SelectedIndex="{Binding LeftTab}" Padding="0">
+            <TabItem Header="Toolbox" FontSize="13">
+              <v:ToolboxView DataContext="{Binding Toolbox}" />
+            </TabItem>
+            <TabItem Header="Project" FontSize="13">
+              <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding ProjectName}" FontWeight="SemiBold" Margin="6,4" TextTrimming="CharacterEllipsis" />
+                <TextBlock DockPanel.Dock="Top" Text="File › Open Project… to browse a .csproj" Margin="6,4" Opacity="0.6" TextWrapping="Wrap"
+                           IsVisible="{Binding !HasProject}" />
+                <ListBox x:Name="ProjectList" ItemsSource="{Binding ProjectFiles}" DoubleTapped="OnProjectFileDoubleTapped">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate DataType="vm:ProjectFileItem">
+                      <TextBlock Text="{Binding RelativePath}" ToolTip.Tip="{Binding FullPath}" />
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </DockPanel>
+            </TabItem>
+          </TabControl>
+          <GridSplitter x:Name="LeftSplitter" Grid.Column="1" ResizeDirection="Columns" />
+          <v:DesignSurfaceView x:Name="Surface" Grid.Column="2" />
+        </Grid>
+        <GridSplitter x:Name="SourceSplitter" Grid.Row="1" ResizeDirection="Rows" />
+        <v:XamlSourceView x:Name="Source" Grid.Row="2" />
+      </Grid>
+
+      <GridSplitter x:Name="RightSplitter" Grid.Column="1" ResizeDirection="Columns" />
+
+      <!-- Right: properties + outline -->
+      <Grid x:Name="RightGrid" Grid.Column="2" RowDefinitions="0.6*,4,0.4*">
+        <DockPanel x:Name="PropertiesPanel">
+          <Border DockPanel.Dock="Top" Classes="panelHeader">
+            <TextBlock Text="Properties" FontWeight="SemiBold" />
+          </Border>
+          <v:PropertyGridView x:Name="Properties" DataContext="{Binding PropertyGrid}" />
+        </DockPanel>
+        <GridSplitter x:Name="OutlineSplitter" Grid.Row="1" ResizeDirection="Rows" />
+        <v:DocumentOutlineView x:Name="Outline" Grid.Row="2" />
+      </Grid>
+    </Grid>
+  </DockPanel>
+</Window>

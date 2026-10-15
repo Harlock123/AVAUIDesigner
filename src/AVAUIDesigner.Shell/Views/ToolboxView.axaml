@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AVAUIDesigner.Shell.ViewModels"
+             xmlns:d="using:AVAUIDesigner.Engine.Descriptors"
+             x:Class="AVAUIDesigner.Shell.Views.ToolboxView"
+             x:DataType="vm:ToolboxViewModel">
+  <UserControl.Styles>
+    <Style Selector="Border.toolboxItem">
+      <Setter Property="Padding" Value="8,3" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.toolboxItem:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+    </Style>
+  </UserControl.Styles>
+  <UserControl.DataTemplates>
+    <DataTemplate DataType="d:ToolboxItem">
+      <Border Classes="toolboxItem" ToolTip.Tip="{Binding ToolTip}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Image Source="{Binding Icon}" Width="16" Height="16" />
+          <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+  </UserControl.DataTemplates>
+  <DockPanel>
+    <TextBox DockPanel.Dock="Top" Text="{Binding SearchText}" Watermark="Search toolbox" Margin="4" />
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <Panel>
+        <ItemsControl ItemsSource="{Binding Categories}" IsVisible="{Binding !IsFiltering}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="d:ToolboxCategory">
+              <Expander Header="{Binding Name}" IsExpanded="{Binding IsExpanded}" HorizontalAlignment="Stretch"
+                        Padding="2" Margin="2,1">
+                <ItemsControl ItemsSource="{Binding Items}" />
+              </Expander>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <ItemsControl ItemsSource="{Binding FilteredItems}" IsVisible="{Binding IsFiltering}" Margin="2" />
+      </Panel>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

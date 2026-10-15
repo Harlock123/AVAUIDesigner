@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Engine</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Core Avalonia types (Size, Thickness, Color, IImage) only; no windowing/platform. -->
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="ReactiveUI" />
+    <PackageReference Include="Scriban" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CodeGeneration\Templates\*.sbntxt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AVAUIDesigner.Engine.Tests" />
+  </ItemGroup>
+</Project>

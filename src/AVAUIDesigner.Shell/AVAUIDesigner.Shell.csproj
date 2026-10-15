@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Shell</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <PackageReference Include="Avalonia.AvaloniaEdit" />
+    <PackageReference Include="ReactiveUI.Avalonia" />
+    <PackageReference Include="DynamicData" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AVAUIDesigner.Engine\AVAUIDesigner.Engine.csproj" />
+    <ProjectReference Include="..\AVAUIDesigner.Controls\AVAUIDesigner.Controls.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AVAUIDesigner.Shell.Tests" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AVAUIDesigner.Shell.ViewModels"
+             x:Class="AVAUIDesigner.Shell.Views.DocumentOutlineView"
+             x:DataType="vm:MainWindowViewModel">
+  <DockPanel>
+    <TextBlock DockPanel.Dock="Top" Text="Document Outline" FontWeight="SemiBold" Margin="6,4" />
+    <TreeView x:Name="Tree" ItemsSource="{Binding DocumentOutline.RootNodes}" SelectionMode="Multiple"
+              DragDrop.AllowDrop="True">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem" x:DataType="vm:DesignElementNodeViewModel">
+          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+          <Setter Property="MinHeight" Value="24" />
+          <Setter Property="Padding" Value="0" />
+        </Style>
+      </TreeView.Styles>
+      <TreeView.ItemTemplate>
+        <TreeDataTemplate DataType="vm:DesignElementNodeViewModel" ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <Image Source="{Binding Icon}" Width="16" Height="16" />
+            <TextBlock Text="{Binding PropertyLabel}" Opacity="0.55" FontStyle="Italic"
+                       IsVisible="{Binding PropertyLabel, Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding TypeName}" Opacity="0.55" VerticalAlignment="Center" />
+            <TextBlock Text="🔒" FontSize="10" IsVisible="{Binding IsLocked}" VerticalAlignment="Center" />
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.ItemTemplate>
+      <TreeView.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Cu_t" Command="{Binding CutCommand}" InputGesture="Ctrl+X" />
+          <MenuItem Header="_Copy" Command="{Binding CopyCommand}" InputGesture="Ctrl+C" />
+          <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGesture="Ctrl+V" />
+          <MenuItem Header="_Delete" Command="{Binding DeleteCommand}" InputGesture="Delete" />
+          <Separator />
+          <MenuItem Header="Bring to Front" Command="{Binding BringToFrontCommand}" InputGesture="Ctrl+OemCloseBrackets" />
+          <MenuItem Header="Send to Back" Command="{Binding SendToBackCommand}" InputGesture="Ctrl+OemOpenBrackets" />
+          <MenuItem Header="Wrap In">
+            <MenuItem Header="Grid" Command="{Binding WrapInCommand}" CommandParameter="Grid" />
+            <MenuItem Header="StackPanel" Command="{Binding WrapInCommand}" CommandParameter="StackPanel" />
+            <MenuItem Header="Border" Command="{Binding WrapInCommand}" CommandParameter="Border" />
+            <MenuItem Header="ScrollViewer" Command="{Binding WrapInCommand}" CommandParameter="ScrollViewer" />
+            <MenuItem Header="Canvas" Command="{Binding WrapInCommand}" CommandParameter="Canvas" />
+          </MenuItem>
+          <MenuItem Header="Unwrap" Command="{Binding UnwrapCommand}" />
+          <Separator />
+          <MenuItem Header="Set x:Name…" Command="{Binding RenameCommand}" InputGesture="F2" />
+          <MenuItem Header="Lock / Unlock" Command="{Binding ToggleLockCommand}" />
+          <MenuItem Header="View XAML for Selection" Command="{Binding ViewXamlForSelectionCommand}" />
+        </ContextMenu>
+      </TreeView.ContextMenu>
+    </TreeView>
+  </DockPanel>
+</UserControl>

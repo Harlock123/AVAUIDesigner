@@ -1,0 +1,27 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AVAUIDesigner.Shell.ViewModels"
+             xmlns:ae="using:AvaloniaEdit"
+             x:Class="AVAUIDesigner.Shell.Views.XamlSourceView"
+             x:DataType="vm:MainWindowViewModel">
+  <DockPanel>
+    <Border DockPanel.Dock="Bottom" Background="#33E0453A" Padding="6,3"
+            IsVisible="{Binding XamlSource.HasParseError}">
+      <TextBlock Text="{Binding XamlSource.ParseErrorMessage}" TextWrapping="Wrap" FontSize="12" />
+    </Border>
+    <TabControl SelectedIndex="{Binding BottomTab}" Padding="0">
+      <TabItem Header="XAML" FontSize="13">
+        <ae:TextEditor x:Name="XamlEditor" FontFamily="Cascadia Code,Consolas,Menlo,DejaVu Sans Mono,Noto Sans Mono,Liberation Mono,JetBrains Mono,Ubuntu Mono,monospace" FontSize="13"
+                       ShowLineNumbers="True" WordWrap="False" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+      </TabItem>
+      <TabItem Header="Code-Behind" FontSize="13">
+        <ae:TextEditor x:Name="CodeEditor" IsReadOnly="True" FontFamily="Cascadia Code,Consolas,Menlo,DejaVu Sans Mono,Noto Sans Mono,Liberation Mono,JetBrains Mono,Ubuntu Mono,monospace" FontSize="13"
+                       ShowLineNumbers="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+      </TabItem>
+      <TabItem Header="ViewModel" FontSize="13" IsVisible="{Binding IsMvvm}">
+        <ae:TextEditor x:Name="ViewModelEditor" IsReadOnly="True" FontFamily="Cascadia Code,Consolas,Menlo,DejaVu Sans Mono,Noto Sans Mono,Liberation Mono,JetBrains Mono,Ubuntu Mono,monospace" FontSize="13"
+                       ShowLineNumbers="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" />
+      </TabItem>
+    </TabControl>
+  </DockPanel>
+</UserControl>
