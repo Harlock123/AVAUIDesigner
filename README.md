@@ -1,6 +1,6 @@
 # AVAUIDesigner
 
-![.NET 10](https://img.shields.io/badge/.NET-10-512BD4) ![Avalonia 11.3](https://img.shields.io/badge/Avalonia-11.3-8B44AC) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![.NET 10](https://img.shields.io/badge/.NET-10-512BD4) ![Avalonia 11.3](https://img.shields.io/badge/Avalonia-11.3-8B44AC) ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg) [![Build](https://github.com/Harlock123/AVAUIDesigner/actions/workflows/build.yml/badge.svg)](https://github.com/Harlock123/AVAUIDesigner/actions/workflows/build.yml)
 
 **A visual drag-and-drop designer for [Avalonia UI](https://avaloniaui.net/) `.axaml` files.**
 
@@ -19,6 +19,7 @@ It is cross-platform (Windows, macOS, Linux) and is built with .NET 10 and Avalo
 ## Contents
 
 - [Highlights](#highlights)
+- [Download and run](#download-and-run)
 - [Getting started](#getting-started)
 - [Tour](#tour)
   - [Main window](#main-window)
@@ -64,6 +65,29 @@ It is cross-platform (Windows, macOS, Linux) and is built with .NET 10 and Avalo
 
 ---
 
+## Download and run
+
+Ready-to-run builds for Windows, macOS and Linux, on both Intel/AMD and ARM, are on the
+[Releases page](https://github.com/Harlock123/AVAUIDesigner/releases/tag/latest). **Latest build** is
+rebuilt on every push to `main`. Each download is one self-contained executable: no .NET install is
+needed.
+
+| Platform | Archive |
+|---|---|
+| Windows | `AVAUIDesigner-win-x64.zip`, `AVAUIDesigner-win-x86.zip`, `AVAUIDesigner-win-arm64.zip` |
+| macOS | `AVAUIDesigner-osx-arm64.tar.gz` (Apple silicon), `AVAUIDesigner-osx-x64.tar.gz` (Intel) |
+| Linux | `AVAUIDesigner-linux-x64.tar.gz`, `AVAUIDesigner-linux-arm64.tar.gz`, `AVAUIDesigner-linux-arm.tar.gz` |
+
+```bash
+tar -xzf AVAUIDesigner-linux-x64.tar.gz     # or linux-arm64, linux-arm, osx-arm64, osx-x64
+./AVAUIDesigner                             # or ./AVAUIDesigner path/to/View.axaml
+```
+
+On Windows, unzip and run `AVAUIDesigner.exe`. On macOS, if Gatekeeper refuses to open it, run
+`xattr -d com.apple.quarantine AVAUIDesigner` once.
+
+---
+
 ## Getting started
 
 ### Requirements
@@ -88,8 +112,13 @@ dotnet run --project src/AVAUIDesigner.App -- path/to/MyApp.csproj
 
 ### Publish a standalone build
 
+The [Build workflow](.github/workflows/build.yml) builds and tests every push, then publishes single-file
+executables for all eight platforms. A `v*` tag (for example `v1.0.0`) makes a versioned release. To build one
+locally:
+
 ```bash
-dotnet publish src/AVAUIDesigner.App -c Release -r win-x64     # or osx-arm64, linux-x64, linux-arm64…
+dotnet publish src/AVAUIDesigner.App -c Release -r win-x64 --self-contained \
+  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
 ```
 
 ---

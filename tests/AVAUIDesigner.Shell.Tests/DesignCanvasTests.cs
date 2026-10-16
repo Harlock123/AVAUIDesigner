@@ -129,10 +129,10 @@ public class DesignCanvasTests
 #pragma warning disable CS0618
         var data = new DataObject();
         data.Set(DesignCanvas.DescriptorDataFormat, "TextBox");
-#pragma warning restore CS0618
         window.DragDrop(target, RawDragEventType.DragEnter, data, DragDropEffects.Copy, RawInputModifiers.None);
         window.DragDrop(target, RawDragEventType.DragOver, data, DragDropEffects.Copy, RawInputModifiers.None);
         window.DragDrop(target, RawDragEventType.Drop, data, DragDropEffects.Copy, RawInputModifiers.None);
+#pragma warning restore CS0618
         TestHelpers.Pump();
 
         var canvasElement = doc.RootElement.Children[0];
