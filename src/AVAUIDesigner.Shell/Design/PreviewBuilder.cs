@@ -265,7 +265,13 @@ public class PreviewBuilder
                     target.ClearValue(ap);
                     return true;
                 }
-                if (XamlValueConverter.IsMarkupExtension(value)) return false;
+                if (XamlValueConverter.IsMarkupExtension(value))
+                {
+                    // A binding shows its FallbackValue at design time, as it does at run time when there's no data.
+                    if (Fallback(value) is not { } fallback || !ConvertValue(fallback, ap.PropertyType, out var shown)) return false;
+                    target.SetValue(ap, shown);
+                    return true;
+                }
                 if (ConvertValue(value, ap.PropertyType, out var converted))
                 {
                     target.SetValue(ap, converted);
@@ -287,6 +293,14 @@ public class PreviewBuilder
             // A bad design-time value must never break the surface.
         }
         return false;
+    }
+
+    /// <summary>A binding's FallbackValue ("{Binding Name, FallbackValue='Jane Doe'}" → "Jane Doe"), or null.</summary>
+    public static string? Fallback(string markup)
+    {
+        var m = System.Text.RegularExpressions.Regex.Match(markup, @"^\{\s*(?:Binding|CompiledBinding|ReflectionBinding)\b.*?\bFallbackValue\s*=\s*(?:'(?<q>(?:[^'\\]|\\.)*)'|(?<v>[^,}]*))", System.Text.RegularExpressions.RegexOptions.Singleline);
+        if (!m.Success) return null;
+        return m.Groups["q"].Success ? m.Groups["q"].Value.Replace("\\'", "'") : m.Groups["v"].Value.Trim();
     }
 
     private static bool ApplyAttached(AvaloniaObject target, string owner, string name, string? value)

@@ -467,6 +467,7 @@ public partial class MainWindowViewModel : ReactiveObject, IPropertyGridHost, ID
 
     private void SetDocument(DesignDocument? document, string? rawText = null, XamlParseResult? parsed = null, XamlParseError? error = null)
     {
+        PendingFiles.Clear();
         CurrentDocument = document;
         UndoRedo.Document = document;
         SelectionManager.Document = document;
@@ -808,6 +809,7 @@ public partial class MainWindowViewModel : ReactiveObject, IPropertyGridHost, ID
         {
             XamlSource.FlushPendingEdits();
             Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+            if (!await WritePendingFilesAsync()) return false;
             string xaml;
             var writeCode = true;
             if (XamlSource.HasParseError)

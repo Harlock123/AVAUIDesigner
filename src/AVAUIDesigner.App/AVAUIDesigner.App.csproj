@@ -8,6 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
+    <!-- With the mcp switch, AVAUIDesigner runs Avalonia on its headless platform (with Skia), to draw designs with no window. -->
+    <PackageReference Include="Avalonia.Headless" />
     <PackageReference Include="Avalonia.Fonts.Inter" />
     <PackageReference Include="ReactiveUI.Avalonia" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />

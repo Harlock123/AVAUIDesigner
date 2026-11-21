@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Data structures for screens: entities read from C# classes, SQL scripts or a database's own catalogue (schema
+       only, never rows), and the generators that turn them into forms, CRUD screens and clinical assessments. No UI. -->
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Data</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="MySqlConnector" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="System.Data.Odbc" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AVAUIDesigner.Shell.Tests" />
+  </ItemGroup>
+</Project>

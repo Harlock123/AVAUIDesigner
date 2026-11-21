@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\AVAUIDesigner.Engine\AVAUIDesigner.Engine.csproj" />
     <ProjectReference Include="..\AVAUIDesigner.Controls\AVAUIDesigner.Controls.csproj" />
+    <ProjectReference Include="..\AVAUIDesigner.Chat\AVAUIDesigner.Chat.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="AVAUIDesigner.Shell.Tests" />

@@ -39,6 +39,29 @@ public class UndoRedoTests
     // ---------- Stack behavior ----------
 
     [Fact]
+    public void Squash_FoldsStepsIntoOne_AndForgetRedoDropsRedo()
+    {
+        var (doc, stack) = Setup();
+        var before = X(doc);
+        var depth = stack.UndoCount;
+        var (content, width) = (Btn(doc).GetValue("Content"), Btn(doc).GetValue("Width"));
+        stack.Execute(new DelegateCommand("a", d => d.NamedElements["btnOk"].SetValue("Content", "A"), d => d.NamedElements["btnOk"].SetValue("Content", content)));
+        stack.Execute(new DelegateCommand("b", d => d.NamedElements["btnOk"].SetValue("Width", "99"), d => d.NamedElements["btnOk"].SetValue("Width", width)));
+        var after = X(doc);
+        stack.Squash(depth, "AI: two steps");
+        Assert.Equal(depth + 1, stack.UndoCount);
+        Assert.Equal("AI: two steps", stack.UndoDescription);
+        stack.Undo();
+        Assert.Equal(before, X(doc));
+        stack.Redo();
+        Assert.Equal(after, X(doc));
+        stack.Undo();
+        Assert.True(stack.CanRedo);
+        stack.ForgetRedo();
+        Assert.False(stack.CanRedo);
+    }
+
+    [Fact]
     public void NewStack_HasNothingToUndo()
     {
         var (_, stack) = Setup();

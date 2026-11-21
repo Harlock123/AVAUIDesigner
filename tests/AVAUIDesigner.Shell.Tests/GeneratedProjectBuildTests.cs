@@ -42,6 +42,53 @@ public class GeneratedProjectBuildTests(ITestOutputHelper output)
     public async Task NameGeneratorOff_FieldsAndWireEvents_ProjectBuilds() =>
         await BuildProject("fields", "<AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>", fields: true, wireInCode: true);
 
+    /// <summary>Every recipe's screen, saved by the MCP server with its view models, models and repositories, builds.</summary>
+    [AvaloniaFact]
+    public async Task AgentScreens_ProjectBuilds()
+    {
+        if (!Enabled) return;
+        using var rig = new Agents.AgentTests.Rig();
+        var dir = rig.Root;
+        await File.WriteAllTextAsync(Path.Combine(dir, "DemoApp.csproj"), Csproj.Replace("{EXTRA}", "").Replace("<RootNamespace>DemoApp</RootNamespace>", "<RootNamespace>Clinic</RootNamespace>")
+            .Replace("</ItemGroup>", """
+                <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
+                <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+              </ItemGroup>
+            """));
+        await File.WriteAllTextAsync(Path.Combine(dir, "Directory.Packages.props"), "<Project><PropertyGroup><ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally></PropertyGroup></Project>");
+        await File.WriteAllTextAsync(Path.Combine(dir, "Directory.Build.props"), "<Project />");
+        foreach (var recipe in typeof(AVAUIDesigner.Mcp.Recipes).GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                     .Where(m => m.Name != nameof(AVAUIDesigner.Mcp.Recipes.CrudFromTable) && m.ReturnType == typeof(string) && m.GetCustomAttributes(typeof(ModelContextProtocol.Server.McpServerPromptAttribute), false).Length > 0))
+        {
+            var text = (string)recipe.Invoke(null, recipe.GetParameters().Select(_ => (object?)null).ToArray())!;
+            foreach (var call in text.Split('\n').Select(l => l.Trim()).Where(l => l.StartsWith(AVAUIDesigner.Mcp.Recipes.CallMarker, StringComparison.Ordinal)))
+            {
+                var rest = call[AVAUIDesigner.Mcp.Recipes.CallMarker.Length..];
+                var space = rest.IndexOf(' ');
+                var o = rig.Call(rest[..space], System.Text.Json.JsonDocument.Parse(rest[(space + 1)..]).RootElement);
+                Assert.False(o.IsError, $"{recipe.Name}: {o.Text}");
+            }
+            rig.Ok("save_document", new { overwrite = true });
+        }
+        await Build(Path.Combine(dir, "DemoApp.csproj"));
+    }
+
+    private async Task Build(string csproj)
+    {
+        var psi = new ProcessStartInfo("dotnet", $"build \"{csproj}\" -nologo -v:q")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+        };
+        using var process = Process.Start(psi)!;
+        var stdout = await process.StandardOutput.ReadToEndAsync();
+        var stderr = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
+        output.WriteLine(stdout);
+        output.WriteLine(stderr);
+        Assert.True(process.ExitCode == 0, $"Build failed:\n{stdout}\n{stderr}");
+    }
+
     private async Task BuildProject(string name, string extra, bool fields, bool wireInCode)
     {
         if (!Enabled) return;
@@ -85,17 +132,6 @@ public class GeneratedProjectBuildTests(ITestOutputHelper output)
         vm.Execute(new SetEventHandlerCommand(button, "Click", "Button1_Click"));
         Assert.True(await vm.SaveToAsync(Path.Combine(dir, "Views", "EditorView.axaml")));
 
-        var psi = new ProcessStartInfo("dotnet", $"build \"{csproj}\" -nologo -v:q")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-        };
-        using var process = Process.Start(psi)!;
-        var stdout = await process.StandardOutput.ReadToEndAsync();
-        var stderr = await process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-        output.WriteLine(stdout);
-        output.WriteLine(stderr);
-        Assert.True(process.ExitCode == 0, $"Build failed:\n{stdout}\n{stderr}");
+        await Build(csproj);
     }
 }

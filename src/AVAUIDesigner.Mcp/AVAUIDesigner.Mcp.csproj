@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The MCP server: AI agents design screens through it, headless over stdio, live in the open window through a
+       local pipe, or over the network (HTTP, with a token). No windows: drawing a design as a picture comes from the
+       program (IDesignLibrary), so this sits beside the designer rather than on it. -->
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Mcp</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AVAUIDesigner.Engine\AVAUIDesigner.Engine.csproj" />
+    <ProjectReference Include="..\AVAUIDesigner.Data\AVAUIDesigner.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The official C# MCP SDK's core: the server, client and transports. -->
+    <PackageReference Include="ModelContextProtocol.Core" />
+    <!-- The network door (NetworkListener): the SDK's Streamable HTTP handler on Kestrel. -->
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AVAUIDesigner.Shell.Tests" />
+  </ItemGroup>
+</Project>

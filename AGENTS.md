@@ -16,6 +16,8 @@ notes" list where the code deliberately departs from it.
 dotnet build AVAUIDesigner.sln                    # no global.json: any .NET 10 SDK
 dotnet test AVAUIDesigner.sln                     # Engine and Shell tests; the Shell tests render headlessly
 dotnet run --project src/AVAUIDesigner.App        # start the designer
+dotnet run --project src/AVAUIDesigner.App -- --mcp   # the MCP server on stdio, no window (--attach: the open window;
+                                                      # --http [ADDRESS:]PORT: over the network, with a token)
 ./scripts/update-screenshots.sh                   # re-render docs/screenshots/*.png (sets AVAUIDESIGNER_SCREENSHOTS)
 AVAUIDESIGNER_BUILD_TEST=1 dotnet test tests/AVAUIDesigner.Shell.Tests --filter GeneratedProjectBuildTests
 ```
@@ -44,7 +46,42 @@ usings for every project. Package versions are pinned centrally in `Directory.Pa
   - `Controls/PropertyEditors/` holds the code-built property editors.
   - `Design/PlacementService.cs` turns a drop point into attached properties or an insertion index.
   - `Views/` (toolbox, property grid, outline, AvaloniaEdit source view), `Dialogs/` and `Services/`.
-- `src/AVAUIDesigner.App/`: `Program.cs` sets up dependency injection and starts the app.
+- `src/AVAUIDesigner.Data/`: data structures for screens, with no UI.
+  - `EntityModel.cs`: `EntityModel` and `FieldModel` (what every source is read into), `Words`, `Identifiers`
+    and `TypeMap` (SQL types to C#).
+  - `SourceReaders.cs`: entities from C# (Roslyn: classes, records, data-annotation attributes, enums) and from
+    SQL scripts' `CREATE TABLE`.
+  - `Databases.cs`: `SqlDialect` (quoting, parameters, how each engine returns a new key) and `SchemaReader`,
+    which reads a database's catalogue only, never rows.
+  - `Forms.cs`, `Crud.cs`, `Assessments.cs`: the XAML and C# generators. `CodeMerge.cs` adds members to an
+    existing class.
+- `src/AVAUIDesigner.Mcp/`: the MCP server (ModelContextProtocol.Core, and .AspNetCore for the network door).
+  - `DesignTools*.cs`: the tools, as `[McpServerTool]` methods.
+  - `DesignServer.cs`: the instructions every agent is told, the argument checks, and the recording of each
+    session's changes.
+  - `Recipes.cs`: the saved recipes.
+  - `Hosting.cs`:
+    - Handlers touch the design only through `IDesignHost.RunAsync` and an `IDesignSession`.
+    - `DesignHost` runs each call on the UI thread, waiting while a dialog is open.
+    - `HeadlessSession` is the session for `--mcp`.
+    - `AgentEditCommand` makes each change one undo step.
+  - `Elements.cs`: finding elements by name or path, describing, naming and inserting them.
+  - `ConnectionStore.cs`: named database connections.
+  - `LiveListener`, `LiveBridge`, `NetworkListener`, `McpCommandLine` and `Workspace` are the same files as AVA
+    Modeler's, AVASvgMaker's and the others', apart from the names: fix them together.
+- `src/AVAUIDesigner.Chat/`: the AI Chat's conversation and clients (Claude through the Anthropic SDK, or any
+  OpenAI-compatible server), keys, usage, saved chats and the in-process bridge to the server. It is a copy of
+  AVA Modeler's `AVAModeler.Chat` (by way of AVASvgMaker), so a fix there may be wanted here.
+- `src/AVAUIDesigner.Shell/Agents/`:
+  - `ChatPanel.cs`: the panel. Its brushes follow the theme.
+  - `LiveAgents.cs`: `WindowSession` (the open design as an agent sees it) and the doors.
+  - `DesignLibrary.cs`: drawing a design as a picture, in a hidden stage panel.
+  - `AgentSettings.cs`: `agents.json` beside `settings.json`.
+  - `MainWindow.Agents.cs` holds the AI menu, the chat dock, Connect an Agent and Data Connections.
+  - `MainWindowViewModel.Agents.cs` holds `PendingFiles`: code an agent made, written on the next save, by the
+    agent or with Ctrl+S.
+- `src/AVAUIDesigner.App/`: `Program.cs` sets up dependency injection and starts the app. `AgentMain.cs` runs
+  `--mcp` on Avalonia's headless platform with Skia.
 - `tests/AVAUIDesigner.Engine.Tests/`: xUnit 2 tests of parsing, round-tripping, undo/redo and generation.
 - `tests/AVAUIDesigner.Shell.Tests/`: xUnit 2 with `Avalonia.Headless.XUnit` and real Skia rendering; it drives the
   main window with simulated mouse and keyboard input. `ReadmeScreenshots.cs` makes the README images.
@@ -63,6 +100,26 @@ usings for every project. Package versions are pinned centrally in `Directory.Pa
 - **Settings and files.** Settings live in `settings.json` under the app-data folder (`AVAUIDesigner`), and
   plugins load from its `Plugins` subfolder. Crash-recovery snapshots go to the temp folder (`AVAUIDesigner`).
   Tests pass their own paths in a temp folder and never touch the user's settings.
+- **Agent tools.** Every change an agent makes goes through `DesignTools.Edit`:
+  - The work is done on a copy of the design, which replaces it as one `AgentEditCommand`, so a call that
+    throws changes nothing.
+  - A batch is several such steps folded into one with `UndoRedoStack.Squash`.
+  - A new tool needs a `[Description]` on it and on every parameter (snake_case names), and a place in
+    `AgentTests.ToolNames`.
+  - Every recipe is run call by call by `AgentTests`, and built for real by the opt-in
+    `GeneratedProjectBuildTests.AgentScreens_ProjectBuilds`.
+  - `read_file`, generated files and every other path stay inside the working folder (`Workspace`).
+  - Saving doesn't write over a file this session didn't write unless `overwrite` is given (Ctrl+S asks).
+- **Generated code builds.** CRUD, form and assessment code must compile in an app with compiled bindings on.
+  Their method names (`Load`, `Save`, …) match what the designer's view-model merge looks for, so it adds
+  nothing twice. After changing a generator, run the opt-in build test. If the SQL changes, run it against
+  the engines (see the README's Screens from data).
+- **No real model, keys, database server or user settings in tests.** `SettingsIsolation` points
+  `AgentSettings.FolderOverride` at a temporary folder before any test. Chat tests answer from
+  `FakeModelServer`, the database is a SQLite file, and test windows get key stores, connection stores and pipes
+  of their own.
+- **Agents never read rows.** `SchemaReader` runs catalogue queries only. Keep it that way: the README promises
+  it, and clinics rely on it.
 
 ## Making a change
 

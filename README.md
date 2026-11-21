@@ -32,6 +32,10 @@ It is cross-platform (Windows, macOS, Linux) and is built with .NET 10 and Avalo
   - [MVVM generation](#mvvm-generation)
   - [New documents and projects](#new-documents-and-projects)
   - [Preferences and themes](#preferences-and-themes)
+- [AI agents and the AI Chat](#ai-agents-and-the-ai-chat)
+  - [Screens from data](#screens-from-data)
+  - [Clinical and record-keeping screens](#clinical-and-record-keeping-screens)
+  - [Connecting an agent](#connecting-an-agent)
 - [Keyboard shortcuts](#keyboard-shortcuts)
 - [Supported controls](#supported-controls)
 - [Extending with plugins](#extending-with-plugins)
@@ -60,6 +64,11 @@ It is cross-platform (Windows, macOS, Linux) and is built with .NET 10 and Avalo
 - **Full undo/redo.** Every change goes through a command stack.
 - **Project aware.** Open a `.csproj` to browse its views. Root namespaces and Avalonia build settings are
   detected, and external file changes are noticed.
+- **AI agents and an AI Chat.** An MCP server with 39 tools and 11 recipes lets Claude, a local model (Ollama,
+  LM Studio) or any MCP client design screens in the open window. It can read data structures from C# classes,
+  SQL scripts or a live database's catalogue (SQL Server, PostgreSQL, MySQL/MariaDB, Oracle, SQLite, Db2), and
+  scaffold whole CRUD screens with their view models and data access, as well as EHR screens and scored clinical
+  assessments (PHQ-9, GAD-7, CANS).
 - **Crash recovery, persisted layout and settings, light/dark themes, and a plugin system** for custom controls
   and property editors.
 
@@ -342,6 +351,127 @@ Settings are stored in JSON in your user configuration folder:
 
 ---
 
+## AI agents and the AI Chat
+
+AVAUIDesigner is also an [MCP](https://modelcontextprotocol.io/) server, and it has an **AI Chat** of its own
+(**AI › AI Chat**, `F12`). Either way, an AI model designs with the same controls, properties and commands you
+use. Every change it makes is one step on your undo stack, so `Ctrl+Z` takes it back, and a call that fails
+changes nothing.
+
+![The AI Chat on a local model: it reads the patients table's structure from a SQLite database, scaffolds a CRUD screen, looks at it, and offers Undo this reply](docs/screenshots/ai-chat.png)
+
+- **Any model, with or without a key.** Use Claude through your own Anthropic API key, or any server that speaks
+  the OpenAI Chat Completions API: Ollama or LM Studio on this computer or your network (no key, nothing leaves
+  your network), or a cloud service such as OpenAI or OpenRouter (with its key). Small local models can be
+  given a core set of 16 tools.
+- **The chat shows its work.** Each tool call is a line in the panel, and pictures the model takes of the
+  design appear in it too. *Undo this reply* takes back everything one answer did. The **Timeline** shows each
+  reply that changed something, with a picture of the design before it. Chats can be kept, reopened and
+  exported, and the panel counts tokens, an estimated cost and a budget.
+- **39 tools**, in the server's own words when an agent connects:
+  - The design: `get_document`, `get_xaml`, `set_xaml`, `new_document`, `open_document` and `save_document`.
+    Saving writes the `.axaml`, its code-behind and its view model, keeping code already there.
+  - Building: `add_xaml` (any fragment of Avalonia XAML into a parent), `add_controls` (from specs),
+    `set_properties`, `set_event`, `delete_elements`, `move_element`, `set_grid`, `wrap_in` and `make_mvvm`.
+  - Looking and checking: `render_view` (a picture of the surface), `get_code`, `list_controls` and
+    `describe_control`.
+  - Data: `read_entities`, `list_connections`, `add_connection`, `list_tables` and `describe_table`.
+  - Generating: `add_form`, `scaffold_crud` and `add_assessment`.
+  - Orchestration: `batch` (several calls as one undo step, with a dry run), `get_recording`, `save_steps` and
+    `run_steps` (a session kept as a steps file with `${parameters}`), and the checkpoint tools: `checkpoint`,
+    `diff`, `render_checkpoint` and `restore_checkpoint`.
+  - Files and history: `list_files`, `read_file`, `undo` and `redo`.
+
+Elements are known by their `x:Name` or by their path in the tree (`0/2/1`). Every element an agent adds gets a
+name.
+
+### Screens from data
+
+Point an agent at a data structure and it builds the screens for it:
+
+- **From code:** `read_entities` reads C# classes and records, with their `[Key]`, `[Required]`, `[MaxLength]`,
+  `[Range]`, `[Display]`, `[Column]` and `[Table]` attributes and enums. It also reads the `CREATE TABLE`
+  statements of a SQL script.
+- **From a database:** `list_tables` and `describe_table` read a database's own catalogue: columns, types,
+  lengths, nullability, the primary key, identity columns and foreign keys, with what a lookup list should show
+  for each. They never read a table's rows, so no patient or personal data leaves the database this way. Add
+  connections in **AI › Data Connections**. Agents see each connection's name and server, never its password,
+  and connections are kept in an owner-only file beside the settings. SQL Server, PostgreSQL, MySQL and MariaDB,
+  Oracle and SQLite connect directly. Db2 and any other database connect through an installed ODBC driver.
+- **`add_form`** lays out a label and the right editor for each field: text, multi-line notes, email, phone,
+  date and time pickers, whole numbers, decimals, money, check boxes, drop-downs of choices, and lookups of
+  related tables. Required fields are marked `*`. In an MVVM view the form is bound, and saving writes the model
+  class and the view-model property it edits.
+- **`scaffold_crud`** makes a whole CRUD screen as a new view: a searchable list beside an edit form (or an
+  editable grid, or a form alone). Saving writes:
+  - The view and its code-behind.
+  - A view model with `Load`, `Search`, `New`, `Save` and `Delete` commands. It checks required fields,
+    lengths, ranges and email addresses before saving, and asks twice before deleting.
+  - The model class, unless the entity came from your own class, which is used as it is.
+  - A repository in the database's own SQL. Every value is a parameter. New keys come back the way each engine
+    returns them (`OUTPUT INSERTED`, `RETURNING`, `LAST_INSERT_ID()`, `RETURNING … INTO`, `FINAL TABLE`).
+    Lookup queries fill foreign-key drop-downs.
+
+  The generated code builds and runs. The repositories have been run end to end (insert with the new key
+  coming back, search, update, get, lookups and delete) against PostgreSQL 18, MySQL 8.4, MariaDB 11.8,
+  SQL Server (Azure SQL Edge), Oracle 23 and SQLite. The Db2 SQL is written to IBM's documented syntax but
+  hasn't been run against a Db2 server.
+
+### Clinical and record-keeping screens
+
+`add_assessment` adds a rated assessment with its scoring: a grid of items with a radio button per rating, the
+total and what it means, and any alert. The view model gets a rating property per item and the scoring.
+
+- **Built in:** PHQ-9 (with the item 9 safety alert), GAD-7, and a CANS core set. The CANS core set lists the
+  needs rated for action and the strengths to build on; programs use their own CANS versions, so describe
+  yours to match it exactly.
+- **Any other instrument:** describe it by its scale, its sections (each with its own scale if needed), its
+  items and its scoring.
+
+The server's **recipes** (MCP prompts) are step-by-step plans with the exact tool calls, for an agent to follow
+or adapt:
+
+- An EHR patient chart: a banner and tabs for problems, medications, allergies, vitals and notes.
+- A patient intake form.
+- Vital signs entry.
+- A medication list (CRUD).
+- A SOAP progress note.
+- PHQ-9 screening.
+- A CANS assessment.
+- The Morse Fall Scale, as an example of a described instrument.
+- Appointment scheduling.
+- A CRUD screen from a database table, or from a C# class or SQL script.
+
+The test suite runs every recipe call by call. An opt-in test saves them all into a real Avalonia project and
+builds it.
+
+<p>
+  <img alt="A patient chart from the patient_chart recipe: a banner with the patient's name, age, DOB, MRN, allergies and code status, over tabs" src="docs/screenshots/ai-patient-chart.png" width="49%">
+  <img alt="A PHQ-9 screening from the phq9_screening recipe: nine items rated 0 to 3, a total and the source line" src="docs/screenshots/ai-phq9.png" width="49%">
+</p>
+
+Designs show a binding's `FallbackValue` on the surface, so sample text such as a made-up patient's name reads
+as it will before data arrives. Never put a real patient's details in a design.
+
+### Connecting an agent
+
+- **In the window:** turn on **AI › Allow AI Agents (MCP)**, then add the server to the agent. For Claude Code:
+
+  ```bash
+  claude mcp add avauidesigner -- /path/to/AVAUIDesigner --mcp --attach
+  ```
+
+  The agent then designs in the open window, and you watch and undo its steps.
+- **Headless:** `AVAUIDesigner --mcp` serves MCP on stdio with no window, with a design of its own. Add
+  `--root FOLDER` to choose the folder it reads and writes in.
+- **Over the network:** **AI › Connect an Agent** opens MCP over HTTP on port 8770 with an access token, or run
+  `AVAUIDesigner --mcp --http [ADDRESS:]PORT` (with `--cert` and `--key` for HTTPS).
+
+Files an agent reads, opens and saves stay inside the working folder (**AI › Working Folder**). By default this
+is the open project's folder, or the folder the design is in.
+
+---
+
 ## Keyboard shortcuts
 
 | Shortcut | Action | | Shortcut | Action |
@@ -356,7 +486,7 @@ Settings are stored in JSON in your user configuration folder:
 | `Ctrl+D` | Duplicate | | `Ctrl+=` / `Ctrl+-` | Zoom in / out |
 | `Delete` | Delete selection | | `Ctrl+0` / `Ctrl+Shift+0` | Zoom 100 % / fit |
 | `Ctrl+A` | Select all | | `Ctrl+Space` | XAML completion |
-| Double-click control | Create default event handler | | `F12` | Go to handler in code-behind |
+| Double-click control | Create default event handler | | `F12` | AI Chat (in the XAML editor: go to handler in code-behind) |
 
 On macOS, `Cmd` works in place of `Ctrl`. **Help › Keyboard Shortcuts** shows this list in the app.
 
@@ -425,8 +555,11 @@ AVAUIDesigner.sln
 ├── src/
 │   ├── AVAUIDesigner.Engine     UI-independent core
 │   ├── AVAUIDesigner.Controls   Control descriptors + toolbox icons
-│   ├── AVAUIDesigner.Shell      Avalonia UI: windows, views, view models
-│   └── AVAUIDesigner.App        Entry point, DI, themes, crash recovery
+│   ├── AVAUIDesigner.Data       Entities from code, SQL and databases; form, CRUD and assessment generators
+│   ├── AVAUIDesigner.Mcp        The MCP server: tools, recipes, the pipe and network doors
+│   ├── AVAUIDesigner.Chat       The AI Chat's conversation and model clients (Claude, OpenAI-compatible)
+│   ├── AVAUIDesigner.Shell      Avalonia UI: windows, views, view models, the chat panel
+│   └── AVAUIDesigner.App        Entry point, DI, themes, crash recovery, --mcp
 ├── tests/
 │   ├── AVAUIDesigner.Engine.Tests   xUnit
 │   └── AVAUIDesigner.Shell.Tests    xUnit + Avalonia.Headless (real rendering)
@@ -439,7 +572,10 @@ AVAUIDesigner.sln
 | **Engine** | The design document model (`DesignDocument` / `DesignElement` / `DesignProperty`), XAML parser and serializer, value conversion, undo/redo commands, selection, code-behind and ViewModel generation (Scriban templates plus a Roslyn merge), project context, settings and the plugin loader |
 | **Controls** | One `ControlDescriptor` per standard control: properties, events, attached properties, default values, layout mode and icon |
 | **Shell** | Main window, `DesignCanvas` (rendering, hit testing, adorners, snapping, drag and drop), toolbox, property grid and editors, outline, AvaloniaEdit source view, dialogs and services |
-| **App** | `Program` / `App`: dependency injection, Fluent theme, crash recovery hooks |
+| **Data** | `EntityModel`, readers for C# and SQL scripts (Roslyn and a DDL parser), `SchemaReader` for six engines' catalogues, and the generators: forms, CRUD screens (XAML, model, repository, view model) and assessments |
+| **Mcp** | `DesignTools` (the tools, as `[McpServerTool]` methods), `DesignServer` (instructions, argument checks, recording), `Recipes`, `Hosting` (sessions and hosts, headless and live), `ConnectionStore`, and the pipe, network and command-line doors |
+| **Chat** | The chat session, its Anthropic and OpenAI-compatible clients, keys, usage, saved chats, and the in-process bridge to the server |
+| **App** | `Program` / `App`: dependency injection, Fluent theme, crash recovery hooks, and `AgentMain` for `--mcp` |
 
 Key ideas:
 
@@ -470,8 +606,14 @@ dotnet test
   input. They cover dragging, resizing, rubber-band selection, toolbox drops, Grid and StackPanel drops,
   copy/paste, wrap/unwrap, alignment, property editing, XAML editing, MVVM conversion, external file changes and
   opening projects.
+- **Agent tests:** an MCP client drives the real server, headless and in the open window. A scripted
+  OpenAI-compatible fake plays the model, and a SQLite file plays the database. They cover every tool, every
+  recipe call by call, CRUD scaffolding and saving, assessments, batches, steps files, checkpoints, the pipe and
+  network doors, and the chat's Undo this reply. No real model, key, database server or user setting is ever
+  touched.
 - **Generated-project build test (opt-in):** saves the designer's output into two real Avalonia projects, one for
-  each event and field wiring mode, and compiles them with `dotnet build`:
+  each event and field wiring mode, plus a project of every recipe's screens with their view models, models and
+  repositories, and compiles them with `dotnet build`:
 
   ```bash
   AVAUIDESIGNER_BUILD_TEST=1 dotnet test tests/AVAUIDesigner.Shell.Tests --filter GeneratedProjectBuildTests

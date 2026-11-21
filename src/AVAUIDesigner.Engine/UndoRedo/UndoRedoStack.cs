@@ -64,6 +64,28 @@ public class UndoRedoStack : ReactiveObject
         CommandApplied?.Invoke(this, command);
     }
 
+    /// <summary>
+    /// Folds every step done since the stack was <paramref name="depth"/> steps deep into one step called
+    /// <paramref name="description"/> (an AI agent's batch is one undo step). Nothing is run again.
+    /// </summary>
+    public void Squash(int depth, string description)
+    {
+        if (depth < 0 || _undo.Count - depth < 2) return;
+        var steps = new List<IDesignCommand>();
+        while (_undo.Count > depth) steps.Add(_undo.Pop());
+        steps.Reverse();
+        _undo.Push(new Commands.CompositeCommand(description, steps));
+        RaiseState();
+    }
+
+    /// <summary>Drops the steps that could be redone (after steps were taken back for good).</summary>
+    public void ForgetRedo()
+    {
+        if (_redo.Count == 0) return;
+        _redo.Clear();
+        RaiseState();
+    }
+
     public void Clear()
     {
         _undo.Clear();

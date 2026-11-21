@@ -17,10 +17,12 @@ internal static class Program
     public static IServiceProvider? Services { get; private set; }
 
     [STAThread]
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
+        // AVAUIDesigner --mcp: the MCP server for AI agents, with no window (see AgentMain).
+        if (AVAUIDesigner.Mcp.McpCommandLine.Wanted(args)) return AgentMain.Run(args);
         Services = BuildServices();
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     public static IServiceProvider BuildServices()

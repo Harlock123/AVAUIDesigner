@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The in-app AI Chat: the conversation, its model clients (Claude through the Anthropic SDK, or any server that
+       speaks the OpenAI Chat Completions API, such as Ollama or LM Studio running locally, a server on the network, or a
+       cloud service) and the bridge to the MCP server's tools. No UI: the panel that shows it is in the Shell.
+       A copy of AVA Modeler's AVAModeler.Chat (by way of AVASvgMaker): a fix in one may be wanted in the others. -->
+  <PropertyGroup>
+    <RootNamespace>AVAUIDesigner.Chat</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AVAUIDesigner.Mcp\AVAUIDesigner.Mcp.csproj" />
+    <!-- The official Anthropic C# SDK. -->
+    <PackageReference Include="Anthropic" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="AVAUIDesigner.Shell.Tests" />
+  </ItemGroup>
+</Project>

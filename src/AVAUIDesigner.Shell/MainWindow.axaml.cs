@@ -40,6 +40,7 @@ public partial class MainWindow : Window
         _subscriptions.Clear();
         _vm = DataContext as MainWindowViewModel;
         if (_vm is null) return;
+        SetUpAgents(_vm);
 
         var dialogs = new DialogService(this);
         _vm.Dialogs = dialogs;
@@ -166,7 +167,7 @@ public partial class MainWindow : Window
             "F2  Set x:Name              Ctrl+G  Group in Grid",
             "Ctrl+]  Bring to front      Ctrl+[  Send to back",
             "Ctrl+=  Zoom in             Ctrl+-  Zoom out     Ctrl+0  100%     Ctrl+Shift+0  Fit",
-            "Ctrl+Space  XAML attribute completion        F12  Go to code-behind definition",
+            "Ctrl+Space  XAML attribute completion        F12  AI Chat (in the XAML editor: go to definition)",
             "Double-click a control  Create its default event handler"));
     }
 
@@ -186,6 +187,13 @@ public partial class MainWindow : Window
         var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
         var shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
         var key = e.Key;
+
+        if (key == Key.F12 && !ctrl && !shift)
+        {
+            ToggleChat();
+            e.Handled = true;
+            return;
+        }
 
         // Global file shortcuts work everywhere, even inside text editors.
         ReactiveCommandBase<System.Reactive.Unit, System.Reactive.Unit>? global = (ctrl, shift, key) switch
