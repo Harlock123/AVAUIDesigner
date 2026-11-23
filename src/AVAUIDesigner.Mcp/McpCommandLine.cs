@@ -30,7 +30,7 @@ public static class McpCommandLine
                          stopped with Ctrl+C. ADDRESS is 0.0.0.0 (every network; the default), localhost or one of
                          this computer's addresses; the port is 8770 unless given. Every agent works on one design.
           --token TOKEN  The access token agents must send ("Authorization: Bearer TOKEN"), 16 characters or
-                         more; else the AVASVGMAKER_MCP_TOKEN environment variable; else a new one, printed.
+                         more; else the AVAUIDESIGNER_MCP_TOKEN environment variable; else a new one, printed.
           --cert FILE --key FILE
                          Serve HTTPS with this certificate and private key (PEM files).
         """;
@@ -39,7 +39,7 @@ public static class McpCommandLine
     public const int NetworkPort = 8770;
 
     /// <summary>The environment variable that can give the network door's token.</summary>
-    public const string TokenVariable = "AVASVGMAKER_MCP_TOKEN";
+    public const string TokenVariable = "AVAUIDESIGNER_MCP_TOKEN";
 
     /// <summary>Whether the command line asks for the MCP server.</summary>
     public static bool Wanted(IReadOnlyList<string> args) => args.Contains("--mcp", StringComparer.OrdinalIgnoreCase);
